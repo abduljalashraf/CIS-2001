@@ -284,7 +284,7 @@ def assign_stations1():
                         if Skills[ws][Emp] == 1 and Employee_Assigned[Emp] < day_count and Station_Assigned[ws] < day_count and (
                          Emp != max(Team)) and (Emp != (max(Team) - 1)) and Emp not in employees_under_cross_training and Emp in unassigned_employees:
                             Work_Sheet[ws][Emp] = 1
-                            Employee_Assigned[Emp] += 1
+                            Employee_Assigned[Emp] = day_count
                             Station_Assigned[ws] += 1
                             Attendance_Sheet[Emp] += 1
                             no_of_employees_working += 1
@@ -331,8 +331,10 @@ def assign_stations1():
                         no_of_stations_operating += 1
                         Current_Attendance[day][max(Team)] += 1
                         Station_Assigned[ws] += 1
-                        Employee_Assigned[(max(Team))] = day_count
-                        Employee_Assigned[(max(Team) - 1)] = day_count
+                        # Employee_Assigned[(max(Team))] += 1
+                        # Employee_Assigned[(max(Team) - 1)] += 1
+                        Attendance_Sheet[(max(Team) - 1)] += 1
+                        Attendance_Sheet[max(Team)] += 1
                         Current_Attendance[day][max(Team) - 1] += 1
                         Total_Cost += FullCost
                         unassigned_employees.pop(max(Team))
@@ -343,13 +345,17 @@ def assign_stations1():
                         break
                     continue
 
-            if Employee_Assigned[max(Team)] < day_count and Employee_Assigned[(max(Team) - 1)] < day_count:
+            # if Employee_Assigned[max(Team)] < 1 and Employee_Assigned[(max(Team) - 1)] < 1:
+            if Current_Attendance[day][max(Team)] < 1 and Current_Attendance[day][(max(Team) - 1)] < 1:
                 print('Employee {} is Tag Relief'.format(max(Team)))
                 print('Employee {} is a production Leader'.format((max(Team) - 1)))
-                Employee_Assigned[(max(Team) - 1)] = day_count
-                Employee_Assigned[(max(Team))] = day_count
-                unassigned_employees.pop(max(Team))
+                # Employee_Assigned[(max(Team) - 1)] = day_count
+                # Employee_Assigned[(max(Team))] = day_count
+                Current_Attendance[day][max(Team)] += 1
+                Current_Attendance[day][(max(Team) - 1)] += 1
+
                 unassigned_employees.pop((max(Team) - 1))
+                unassigned_employees.pop(max(Team))
 
             # print('Remaining Employees')
             for e in unassigned_employees:
@@ -373,8 +379,11 @@ def assign_stations1():
                     emp = input('Enter the employee you wish to cross train')
                     emp = int(emp)
                     Attendance_Sheet[emp] = day_count
-                    Employee_Assigned[emp] += 1
-                    Employee_Assigned[emp] += 1
+                    # Employee_Assigned[emp] += 1
+                    # Employee_Assigned[emp] += 1
+                    # Current_Attendance[emp] += 1
+                    # Current_Attendance[emp] += 1
+                    Current_Attendance[day][emp] += 1
                     no_of_employees_cross_trained += 1
                     overall_employees_cross_trained.append(emp)
                     unassigned_employees.pop(int(emp))
@@ -394,8 +403,10 @@ def assign_stations1():
                             'Enter station from the following to train upon {}'.format(list_of_station_options))
                         if int(station) in list_of_station_options:
                             Skills[int(station)][emp] = 1
-                            # Attendance_Sheet[emp] += 1
-                            # Attendance_Sheet[emp] += 1
+                            Attendance_Sheet[emp] += 1
+                            Attendance_Sheet[emp] += 1
+                            Employee_Assigned[emp] += 1
+                            Employee_Assigned[emp] += 1
                             employees_under_cross_training.append(emp)
 
                         if len(unassigned_employees) != 0:
@@ -403,7 +414,7 @@ def assign_stations1():
                             for employee in unassigned_employees:
                                 if Employee_Assigned[employee] == 0:
                                     Total_Cost += GoHome_Cost
-                                    Attendance_Sheet[employee] += 1
+                                    Attendance_Sheet[employee] += 0
                                     Current_Attendance[day][employee] += 0
                                     print('Employee {} is being sent Home'.format(employee))
                                     overall_employees_sent_home.append(employee)
@@ -411,7 +422,7 @@ def assign_stations1():
 
                 elif int(input_task) == 2:
                     for emp in Team:
-                        if Employee_Assigned[emp] == 0:
+                        if Employee_Assigned[emp] == 0 and (emp != max(Team)) and (emp != (max(Team) - 1)):
                             Total_Cost += GoHome_Cost
                             Attendance_Sheet[emp] += 0
                             print('Employee {} is being sent home'.format(unassigned_employees))
