@@ -85,6 +85,7 @@ PreferenceF = pd.read_excel(r'C:\Users\ashra\Downloads\Models of Operational '
 PreferenceG = pd.read_excel(r'C:\Users\ashra\Downloads\Models of Operational '
                             r'Research\Course_Project\Default_Project\all_teams_prefer.xlsx', 'TeamG', index_col=0)
 
+Preference = [PreferenceA, PreferenceB, PreferenceC, PreferenceD, PreferenceE, PreferenceF, PreferenceG]
 # print(PreferenceA)
 
 H_Attendance_A = pd.read_excel(r'C:\Users\ashra\Downloads\Models of Operational '
@@ -470,4 +471,267 @@ def assign_stations1():
     print('Employees Cross Trained are: {}'.format(overall_employees_cross_trained))
 
 
-assign_stations1()
+def assign_stations2():
+    Overall_Cost = 0
+    overall_no_of_employees_working = 0
+    overall_no_of_stations_operating = 0
+    overall_unassigned_employees = []
+    overall_employees_sent_home = []
+    overall_employees_cross_trained = []
+    no_of_employees_cross_trained = 0
+    preference_count = 0
+    employees_assigned_according_to_preference = []
+    day_count = 0
+    employees_under_cross_training = []
+    for day in days:
+        day_count += 1
+        print()
+        print('Schedule of Day: {}'.format(day))
+        print()
+        print('Day Count {}'.format(day_count))
+        for i in range(0, 7):
+            unassigned_employees = []
+            Total_Cost = 0
+            no_of_employees_working = 0
+            no_of_stations_operating = 0
+            Team = Teams[i]
+            Skills = Skills_set[i]
+            Station_Assigned = Station_Assigned_list[i]
+            Employee_Assigned = Employee_Assigned_list[i]
+            Attendance_Sheet = Attendance_Sheet_List[i]
+            Preference_Sheet = Preference[i]
+            Team_Station = Stations[i]
+            Work_Sheet = Work_Sheets[i]
+            Current_Attendance = Current_Attendance_Sheets[i]
+            unassigned_employees = copy.deepcopy(Employee_Assigned_list[i])
+            for employee in Team:
+                if Employee_Assigned[employee] <= day_count != 0 and employee in employees_under_cross_training:
+                    employees_under_cross_training.remove(employee)
+
+            for ws in Team_Station:
+                sum_column = (Skills.sum(axis=0))
+                if sum_column[ws] == 1:
+                    for Emp in Team:
+                        if Skills[ws][Emp] == 1 and Station_Assigned[ws] < day_count and Employee_Assigned[Emp] < day_count and Emp not in employees_under_cross_training and (Emp != max(Team)) and (Emp != (max(Team) - 1)):
+                            if Preference_Sheet[ws][Emp] == 1:
+                                print('Employee {} placed according to the manager\'s preference at station {}{}'.format(Emp, chr(i+65), ws))
+                                preference_count += 1
+                                employees_assigned_according_to_preference.append(Emp)
+                            else:
+                                print('Employee {} has been assigned to workstation {}{}'.format(Emp, chr(i + 65), ws))
+                            Work_Sheet[ws][Emp] = 1
+                            Employee_Assigned[Emp] += 1
+                            no_of_employees_working += 1
+                            no_of_stations_operating += 1
+                            Station_Assigned[ws] += 1
+                            Attendance_Sheet[Emp] += 1
+                            unassigned_employees.pop(Emp)
+                            Current_Attendance[day][Emp] += 1
+                            Total_Cost += FullCost
+                            # print('Employee {} has been assigned to workstation {}{}'.format(Emp, chr(i+65), ws))
+                            continue
+                else:
+                    for Emp in Team:
+                        if Skills[ws][Emp] == 1 and Employee_Assigned[Emp] < day_count and Station_Assigned[ws] < day_count and (
+                         Emp != max(Team)) and (Emp != (max(Team) - 1)) and Emp not in employees_under_cross_training and Emp in unassigned_employees:
+                            if Preference_Sheet[ws][Emp] == 1:
+                                print('Employee {} place according to manager\'s preference at station {}{}'.format(Emp, chr(i+65), ws))
+                                preference_count += 1
+                                employees_assigned_according_to_preference.append(Emp)
+                            else:
+                                print('Employee {} has been assigned to workstation {}{}'.format(Emp, chr(i+65), ws))
+                            Work_Sheet[ws][Emp] = 1
+                            Employee_Assigned[Emp] = day_count
+                            Station_Assigned[ws] += 1
+                            Attendance_Sheet[Emp] += 1
+                            no_of_employees_working += 1
+                            no_of_stations_operating += 1
+                            unassigned_employees.pop(Emp)
+                            Current_Attendance[day][Emp] += 1
+                            Total_Cost += FullCost
+                            # print('Employee {} has been assigned to workstation {}{}'.format(Emp, chr(i+65), ws))
+                            continue
+
+            if int(no_of_employees_working) < len(Team) and (len(Team) - no_of_employees_working - 2) >= 2:
+                list = []
+                station = []
+                for ws in Team_Station:
+                    for Emp in Team:
+                        if Skills[ws][Emp] == 0 and Employee_Assigned[Emp] < day_count and Station_Assigned[ws] < day_count and (Emp != max(Team)) and (Emp != (max(Team) - 1)):
+                            list.append(Emp)
+                            station.append(ws)
+                        if len(list) == 2 and station[0] == station[1]:
+                            print('Employees {}, {} have been assigned station {}{} as they are unskilled'.format(list[0], list[1], chr(i+65), station[0]))
+                            no_of_employees_working += 2
+                            no_of_stations_operating += 1
+                            Current_Attendance[day][list[0]] += 1
+                            Current_Attendance[day][list[1]] += 1
+                            Total_Cost += (2 * 320)
+                            Employee_Assigned[list[0]] = day_count
+                            Employee_Assigned[list[1]] = day_count
+                            Station_Assigned[station[0]] += 1
+                            unassigned_employees.pop(list[0])
+                            unassigned_employees.pop(list[1])
+                            Work_Sheet[station[0]][list[0]] = 1
+                            Work_Sheet[station[1]][list[1]] = 1
+                            station.pop(0)
+                            station.pop(0)
+                            list.pop(0)
+                            list.pop(0)
+                            break
+                        continue
+
+            if int(no_of_employees_working) < len(Team):
+                for ws in Station_Assigned:
+                    if Station_Assigned[ws] == 0 and Employee_Assigned[max(Team)] < day_count:
+                        no_of_employees_working += 1
+                        no_of_stations_operating += 1
+                        Current_Attendance[day][max(Team)] += 1
+                        Station_Assigned[ws] += 1
+                        # Employee_Assigned[(max(Team))] += 1
+                        # Employee_Assigned[(max(Team) - 1)] += 1
+                        Attendance_Sheet[(max(Team) - 1)] += 1
+                        Attendance_Sheet[max(Team)] += 1
+                        Current_Attendance[day][max(Team) - 1] += 1
+                        Total_Cost += FullCost
+                        unassigned_employees.pop(max(Team))
+                        unassigned_employees.pop((max(Team) - 1))
+                        print()
+                        print('Tag Relief {} has been assigned to workstation {}{}'.format((max(Team)), chr(i+65), ws))
+                        print('Employee {} is the production Leader'.format((max(Team) - 1)))
+                        break
+                    continue
+
+            # if Employee_Assigned[max(Team)] < 1 and Employee_Assigned[(max(Team) - 1)] < 1:
+            if Current_Attendance[day][max(Team)] < 1 and Current_Attendance[day][(max(Team) - 1)] < 1:
+                print('Employee {} is Tag Relief'.format(max(Team)))
+                print('Employee {} is a production Leader'.format((max(Team) - 1)))
+                # Employee_Assigned[(max(Team) - 1)] = day_count
+                # Employee_Assigned[(max(Team))] = day_count
+                Current_Attendance[day][max(Team)] += 1
+                Current_Attendance[day][(max(Team) - 1)] += 1
+
+                unassigned_employees.pop((max(Team) - 1))
+                unassigned_employees.pop(max(Team))
+
+            # print('Remaining Employees')
+            for e in unassigned_employees:
+                if Employee_Assigned[e] >= day_count:
+                    unassigned_employees.pop(e)
+                    break
+
+            if len(unassigned_employees) == 0:
+                print()
+                print('All assignments done, no cross training required')
+                print('No Remaining Employees')
+            else:
+                mylist = []
+                for emp in unassigned_employees.keys():
+                    mylist.append(emp)
+                print('Employee {} hasn\'t been assigned any workstation'.format(mylist))
+
+                input_task = input('Enter 1 to cross train employees, else 2 to send home')
+                if int(input_task) == 1:
+                    Total_Cost += FullCost
+                    emp = input('Enter the employee you wish to cross train')
+                    emp = int(emp)
+                    Attendance_Sheet[emp] = day_count
+                    # Employee_Assigned[emp] += 1
+                    # Employee_Assigned[emp] += 1
+                    # Current_Attendance[emp] += 1
+                    # Current_Attendance[emp] += 1
+                    Current_Attendance[day][emp] += 1
+                    no_of_employees_cross_trained += 1
+                    overall_employees_cross_trained.append(emp)
+                    unassigned_employees.pop(int(emp))
+
+                    for e in unassigned_employees:
+                        Attendance_Sheet[emp] += 0
+                        Total_Cost += GoHome_Cost
+                    list_of_station_options = []
+                    for ws in Team_Station:
+                        if Skills[ws][emp] == 0:
+                            list_of_station_options.append(ws)
+                            continue
+                    if len(list_of_station_options) == 0:
+                        print('Employee {} is trained in all stations'.format(emp))
+                    else:
+                        station = input(
+                            'Enter station from the following to train upon {}'.format(list_of_station_options))
+                        if int(station) in list_of_station_options:
+                            Skills[int(station)][emp] = 1
+                            Attendance_Sheet[emp] += 1
+                            Attendance_Sheet[emp] += 1
+                            Employee_Assigned[emp] += 1
+                            Employee_Assigned[emp] += 1
+                            employees_under_cross_training.append(emp)
+
+                        if len(unassigned_employees) != 0:
+                            # for emp in Team:
+                            for employee in unassigned_employees:
+                                if Employee_Assigned[employee] == 0:
+                                    Total_Cost += GoHome_Cost
+                                    Attendance_Sheet[employee] += 0
+                                    Current_Attendance[day][employee] += 0
+                                    print('Employee {} is being sent Home'.format(employee))
+                                    overall_employees_sent_home.append(employee)
+                                    continue
+
+                elif int(input_task) == 2:
+                    for emp in Team:
+                        if Employee_Assigned[emp] == 0 and (emp != max(Team)) and (emp != (max(Team) - 1)):
+                            Total_Cost += GoHome_Cost
+                            Attendance_Sheet[emp] += 0
+                            print('Employee {} is being sent home'.format(unassigned_employees))
+                            overall_employees_sent_home.append(emp)
+
+            # break
+
+            print()
+            print('No. of employees present at work: {}'.format(no_of_employees_working))
+            print('No. of workstations running {}'.format(no_of_stations_operating))
+            print()
+            print('Total Cost is {}$'.format(Total_Cost))
+            print()
+            print('Assignment Matrix of Team{}'.format(chr(65+i)))
+            print()
+            print(Work_Sheet)
+            print()
+            print('New Skills Sheet for Team{}'.format(chr((65+i))))
+            print()
+            print(Skills)
+            # if i == 0:
+            Skills_set[i] = Skills
+            print('Attendance Sheet for Team{}'.format(chr(65+i)))
+            print()
+            print(Current_Attendance_Sheets[i])
+            Overall_Cost += Total_Cost
+            overall_no_of_employees_working += no_of_employees_working
+            overall_no_of_stations_operating += no_of_stations_operating
+            continue
+
+    print()
+    print('Total Cost {}'.format(Overall_Cost))
+    print()
+    if len(overall_unassigned_employees) != 0:
+        print('Overall Unassigned Employees {}'.format(overall_unassigned_employees))
+    print()
+    print('Overall No. of working Employees: {}'.format(overall_no_of_employees_working))
+    print()
+    print('Overall No. of stations Operating : {}'.format(overall_no_of_stations_operating))
+    print()
+    print('Employees sent Home {}'.format(overall_employees_sent_home))
+    print()
+    print('No. of Employees Cross Trained {}'.format(no_of_employees_cross_trained))
+    print()
+    print('Employees Cross Trained are: {}'.format(overall_employees_cross_trained))
+    print()
+    print('No. of Employees assigned according to Manager\'s preference: {}'.format(preference_count))
+    print()
+    print('Employees assigned according to manager\'s preference: {}'.format(employees_assigned_according_to_preference))
+    print()
+
+# assign_stations1()
+
+
+assign_stations2()
